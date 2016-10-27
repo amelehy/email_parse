@@ -19,6 +19,8 @@ def init():
             print "Error: no argument passed for root domain"
             sys.exit(1)
 
+# initialize link discovery to recursively determine
+# what links we should visit from the current page
 def init_link_discovery(url):
     response = requests.get(url)
     domain_name = urlparse(response.url).netloc
@@ -36,19 +38,23 @@ def init_link_discovery(url):
 # domain name in them or that start with '/'
 def fetch_all_links(html, domain_name):
     array = []
-    # get all urls that start with http and 
+    # get all urls that start with 'http' and 
     # have the root domain name as a substring
     for link in html.select('a[href^=http]'):
         url = link.get('href')
-        if domain_name in url:
+        if domain_name in urlparse(url).netloc:
             array.append(url)
     # get all urls that start with '/' 
     for link in html.select('a[href^=\\/]'):
         page = link.get('href')
-        array.append('http://' + domain_name + page)
+        # to account for situations like '//www.jana.com'
+        if '.com' in page and 'blog' not in page and 'Documents' not in page:
+            array.append('http:' + page)
+        elif 'blog' not in page:
+            array.append('http://' + domain_name + page)
     return set(array)
 
-# parse all emails from a webpage
+# parse all emails given the html from a webpage
 def parse_emails(html):
     emails_found = []
     for element in html.select('a[href^=mailto]'):
