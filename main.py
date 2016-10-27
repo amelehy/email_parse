@@ -7,6 +7,7 @@ from urlparse import urlparse
 
 visited_urls = []
 found_email_addresses = []
+MAX_URLS_TO_VISIT = 50
 
 # initialize script
 def init():
@@ -15,7 +16,7 @@ def init():
         try:
             root_domain = sys.argv[1]
             init_link_discovery('http://' + root_domain)
-            final_emails = flatten_and_dedupe(found_email_addresses);
+            final_emails = flatten_and_dedupe(found_email_addresses)
             print_results(final_emails)
         except IndexError:
             print "Error: no argument passed for root domain"
@@ -30,7 +31,7 @@ def init_link_discovery(url):
     soup = BeautifulSoup(raw_html, 'html.parser')
     links_to_visit = fetch_all_links(soup, domain_name)
     for link in links_to_visit:
-        if link not in visited_urls:
+        if link not in visited_urls and len(visited_urls) < MAX_URLS_TO_VISIT:
             print 'Visiting ' + link
             visited_urls.append(link)
             emails = init_link_discovery(link)
@@ -38,8 +39,7 @@ def init_link_discovery(url):
                 found_email_addresses.append(emails)
     return parse_emails(soup) 
 
-# fetch all links in the page that have the original 
-# domain name in them or that start with '/'
+# fetch all relevant links in given page 
 def fetch_all_links(html, domain_name):
     array = []
     # get all urls that start with 'http' and 
@@ -54,7 +54,7 @@ def fetch_all_links(html, domain_name):
         # to account for situations like '//www.jana.com'
         if '.com' in page:
             array.append('http:' + page)
-        elif 'blog' not in page:
+        else:
             array.append('http://' + domain_name + page)
     return set(array)
 
@@ -67,6 +67,7 @@ def parse_emails(html):
         emails_found.append(mailto_email[index_of_colon:])
     return emails_found
 
+# given an array flatten and dedupe it
 def flatten_and_dedupe(emails):
     flattened = [val for sublist in emails for val in sublist]
     deduped = set(flattened)
