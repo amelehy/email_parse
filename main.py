@@ -6,14 +6,15 @@ import tldextract
 from bs4 import BeautifulSoup
 from urlparse import urlparse
 from urlparse import urljoin
+from urllib import unquote
 
 class EmailParser:
 
     visited_urls = []
-    found_email_addresses = []
+    found_email_addresses = set()
     root_domain = ''
     initial_url = ''
-    MAX_URLS_TO_VISIT = 50
+    MAX_URLS_TO_VISIT = 10
 
     def __init__(self, url):
         parsed_url = urlparse(url)
@@ -22,7 +23,7 @@ class EmailParser:
 
     def init_search(self):
         self.init_link_discovery(self.initial_url)
-        final_emails = self.flatten_and_dedupe(self.found_email_addresses)
+        final_emails = self.found_email_addresses
         return final_emails
 
     # initialize link discovery to recursively determine
@@ -40,7 +41,7 @@ class EmailParser:
                     self.visited_urls.append(link)
                     emails = self.init_link_discovery(link)
                     if emails:
-                        self.found_email_addresses.append(emails)
+                        self.found_email_addresses.update(emails)
             return self.parse_emails(soup) 
         else:
             print 'Request to ' + url + ' failed because of: ' + str(response['payload'])
@@ -63,25 +64,36 @@ class EmailParser:
         links = set()
         for link in html.select('a'):
             url = link.get('href') or ''
-            if self.root_domain in urlparse(url).netloc:
+            is_not_an_email = urlparse(url).scheme != 'mailto'
+            url_contains_root_domain = (
+                self.root_domain in tldextract.extract(url).domain or 
+                self.root_domain in tldextract.extract(url).subdomain
+            )
+            if url_contains_root_domain and is_not_an_email:
                 new_url = urljoin('http://' + self.root_domain, url)
                 links.add(new_url)
         return links
 
     # parse all emails given the html from a webpage
     def parse_emails(self, html):
-        emails_found = []
-        for element in html.select('a[href^=mailto]'):
-            mailto_email = element['href']
-            index_of_colon = mailto_email.find(':') + 1
-            emails_found.append(mailto_email[index_of_colon:])
+        emails_found = set()
+        for link in html.select('a'):
+            href = link.get('href') or ''
+            url = urlparse(href)
+            if url.scheme == 'mailto':
+                emails_found.update(self.parse_mailto(url.path))
         return emails_found
 
-    # given an array flatten and dedupe it
-    def flatten_and_dedupe(self, emails):
-        flattened = [val for sublist in emails for val in sublist]
-        deduped = set(flattened)
-        return deduped
+    def parse_mailto(self, email_string):
+        final_emails = set()
+        emails = email_string.split(',')
+        for email in emails:
+            i = email.find('?')
+            if i == -1:
+                final_emails.add(email)
+            else:
+                final_emails.add(email[:i+1])
+        return final_emails
 
 
 # initialize script
@@ -108,9 +120,9 @@ def get_url_from_user():
 # print out what we found
 def print_results(array):
     print '\nFound these email addresses:'
-    for entry in array:
-        print entry
-        break
+    if len(array):
+        for entry in array:
+            print entry
     else:
         print 'None found'
 
