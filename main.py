@@ -1,100 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-import requests
-import tldextract
-from bs4 import BeautifulSoup
-from urlparse import urlparse
-from urlparse import urljoin
-from urllib import unquote
-
-class EmailParser:
-
-    visited_urls = []
-    found_email_addresses = set()
-    root_domain = ''
-    initial_url = ''
-    MAX_URLS_TO_VISIT = 10
-
-    def __init__(self, url):
-        parsed_url = urlparse(url)
-        self.initial_url = parsed_url.geturl() if parsed_url.scheme else 'http://' + parsed_url.geturl()
-        self.root_domain = tldextract.extract(self.initial_url).domain
-
-    def init_search(self):
-        self.init_link_discovery(self.initial_url)
-        final_emails = self.found_email_addresses
-        return final_emails
-
-    # initialize link discovery to recursively determine
-    # what links we should visit from the current page
-    def init_link_discovery(self, url):
-        response = self.init_request(url)
-        if response['success']:   
-            payload = response['payload']
-            raw_html = payload.text
-            soup = BeautifulSoup(raw_html, 'html.parser')
-            links_to_visit = self.fetch_all_links(soup)
-            for link in links_to_visit:
-                if link not in self.visited_urls and len(self.visited_urls) < self.MAX_URLS_TO_VISIT:
-                    print 'Visiting ' + link
-                    self.visited_urls.append(link)
-                    emails = self.init_link_discovery(link)
-                    if emails:
-                        self.found_email_addresses.update(emails)
-            return self.parse_emails(soup) 
-        else:
-            print 'Request to ' + url + ' failed because of: ' + str(response['payload'])
-
-    def init_request(self, url):
-        response = {'success': False, 'payload': ''}
-        try:
-            response['payload'] = requests.get(url)
-            response['success'] = True
-        except requests.exceptions.Timeout as e:
-            response['payload'] = e
-        except requests.exceptions.TooManyRedirects as e:
-            response['payload'] = e
-        except requests.exceptions.RequestException as e:
-            response['payload'] = e
-        return response
-
-    # fetch all relevant links in given page 
-    def fetch_all_links(self, html):
-        links = set()
-        for link in html.select('a'):
-            url = link.get('href') or ''
-            is_not_an_email = urlparse(url).scheme != 'mailto'
-            url_contains_root_domain = (
-                self.root_domain in tldextract.extract(url).domain or 
-                self.root_domain in tldextract.extract(url).subdomain
-            )
-            if url_contains_root_domain and is_not_an_email:
-                new_url = urljoin('http://' + self.root_domain, url)
-                links.add(new_url)
-        return links
-
-    # parse all emails given the html from a webpage
-    def parse_emails(self, html):
-        emails_found = set()
-        for link in html.select('a'):
-            href = link.get('href') or ''
-            url = urlparse(href)
-            if url.scheme == 'mailto':
-                emails_found.update(self.parse_mailto(url.path))
-        return emails_found
-
-    def parse_mailto(self, email_string):
-        final_emails = set()
-        emails = email_string.split(',')
-        for email in emails:
-            i = email.find('?')
-            if i == -1:
-                final_emails.add(email)
-            else:
-                final_emails.add(email[:i+1])
-        return final_emails
-
+from parser import EmailParser
 
 # initialize script
 def init():
@@ -102,7 +9,8 @@ def init():
     # being imported as a module
     if __name__ == "__main__":
         url = get_url_from_user()
-        emails = EmailParser(url).init_search()
+        max_urls_to_visit = 20
+        emails = EmailParser(url, max_urls_to_visit).init_search()
         print_results(emails)
     else:
         raise Exception('This script will be inactive if imported as a module.')
