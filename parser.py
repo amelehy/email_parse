@@ -3,13 +3,15 @@ import tldextract
 from bs4 import BeautifulSoup
 from urlparse import urlparse
 from urlparse import urljoin
-from urllib import unquote
 
 class EmailParser:
 
     visited_urls = []
     found_email_addresses = set()
     ROOT_DOMAIN = ''
+    ROOT_DOMAIN_SUBDOMAIN = ''
+    ROOT_DOMAIN_SUFFIX = ''
+    ROOT_DOMAIN_SCHEME = ''
     INITIAL_URL = ''
     MAX_URLS_TO_VISIT = 0
 
@@ -17,9 +19,12 @@ class EmailParser:
         parsed_url = urlparse(url)
         self.INITIAL_URL = parsed_url.geturl() if parsed_url.scheme else 'http://' + parsed_url.geturl()
         self.ROOT_DOMAIN = tldextract.extract(self.INITIAL_URL).domain
+        self.ROOT_DOMAIN_SUBDOMAIN = tldextract.extract(self.INITIAL_URL).subdomain
+        self.ROOT_DOMAIN_SUFFIX = tldextract.extract(self.INITIAL_URL).suffix
+        self.ROOT_DOMAIN_SCHEME = urlparse(self.INITIAL_URL).scheme
         self.MAX_URLS_TO_VISIT = max_urls_to_visit
 
-    # initialize the search for emails based on the 
+    # initialize the search for emails based on the
     # initial url passed
     def init_search(self):
         self.init_link_discovery(self.INITIAL_URL)
@@ -39,7 +44,7 @@ class EmailParser:
                     emails = self.init_link_discovery(link)
                     if emails:
                         self.found_email_addresses.update(emails)
-            return self.parse_emails(soup) 
+            return self.parse_emails(soup)
         else:
             print 'Request to ' + url + ' failed because of: ' + str(response['payload'])
 
@@ -58,21 +63,46 @@ class EmailParser:
         return response
 
     # fetch all relevant links in given page
-    # (1) url is not a "mailto" link 
-    # (2) the url contains the root domain as part of the domain or subdomain
     def fetch_all_links(self, html):
         links = set()
         for link in html.select('a'):
             url = link.get('href') or ''
-            is_not_an_email = urlparse(url).scheme != 'mailto'
-            url_contains_root_domain = (
-                self.ROOT_DOMAIN in tldextract.extract(url).domain or 
-                self.ROOT_DOMAIN in tldextract.extract(url).subdomain
-            )
-            if url_contains_root_domain and is_not_an_email:
-                new_url = urljoin('http://' + self.ROOT_DOMAIN, url)
-                links.add(new_url)
+            valid_url = self.is_valid_url(url)
+            if valid_url['valid']:
+                links.add(valid_url['url'])
         return links
+
+    # determine if the given url is valid
+    # (1) url is not a "mailto" link
+    # (2) the url contains the root domain as part of the domain or subdomain
+    def is_valid_url(self, url):
+        valid_url = {'valid': False, 'url': ''}
+        is_not_an_email = urlparse(url).scheme != 'mailto'
+        url_contains_root_domain = (
+            self.ROOT_DOMAIN in tldextract.extract(url).domain or
+            self.ROOT_DOMAIN in tldextract.extract(url).subdomain
+        )
+        url_is_relative = self.is_a_relative_url(url)
+        if (url_contains_root_domain or url_is_relative) and is_not_an_email:
+            full = self.get_full_initial_url()
+            valid_url['url'] = urljoin(full + '/', url)
+            valid_url['valid'] = True
+        return valid_url
+
+    # build full initial url from parsed pieces
+    def get_full_initial_url(self):
+        subdomain = self.ROOT_DOMAIN_SUBDOMAIN + '.' if self.ROOT_DOMAIN_SUBDOMAIN else ''
+        return (
+            self.ROOT_DOMAIN_SCHEME + '://' +
+            subdomain +
+            self.ROOT_DOMAIN + '.' +
+            self.ROOT_DOMAIN_SUFFIX
+        )
+
+    # determine if the given url is a relative url
+    def is_a_relative_url(self, url):
+        parsed = tldextract.extract(url)
+        return not parsed.subdomain and not parsed.domain and not parsed.suffix
 
     # parse all emails given the html from a webpage
     def parse_emails(self, html):
