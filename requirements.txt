@@ -1,0 +1,7 @@
+#
+####### requirements.txt #######
+#
+###### Requirements without Version Specifiers ######
+beautifulsoup4
+requests
+tldextract
