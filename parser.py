@@ -6,7 +6,7 @@ from urlparse import urljoin
 
 class EmailParser:
 
-    visited_urls = []
+    visited_urls = {}
     found_email_addresses = set()
     ROOT_DOMAIN = ''
     ROOT_DOMAIN_SUBDOMAIN = ''
@@ -40,7 +40,7 @@ class EmailParser:
             for link in links_to_visit:
                 if link not in self.visited_urls and len(self.visited_urls) < self.MAX_URLS_TO_VISIT:
                     print 'Visiting ' + link
-                    self.visited_urls.append(link)
+                    self.visited_urls[link] = 1
                     emails = self.init_link_discovery(link)
                     if emails:
                         self.found_email_addresses.update(emails)
