@@ -119,6 +119,7 @@ class EmailParser:
         final_emails = set()
         emails = email_string.split(',')
         for email in emails:
+            print email
             i = email.find('?')
             if i == -1:
                 final_emails.add(email)
