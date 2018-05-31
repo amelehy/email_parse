@@ -119,10 +119,12 @@ class EmailParser:
         final_emails = set()
         emails = email_string.split(',')
         for email in emails:
-            print email
             i = email.find('?')
-            if i == -1:
-                final_emails.add(email)
+            if not email.startswith('info') and not email.startswith('sales') and not email.startswith('hello') and not email.startswith('support'):
+                if i == -1:
+                    final_emails.add(email)
+                else:
+                    final_emails.add(email[:i+1])
             else:
-                final_emails.add(email[:i+1])
+                print 'Ignoring ' + email
         return final_emails
