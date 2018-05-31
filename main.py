@@ -10,7 +10,7 @@ def init():
     # being imported as a module
     if __name__ == "__main__":
         url = get_url_from_user()
-        max_urls_to_visit = 100
+        max_urls_to_visit = 20
         emails = EmailParser(url, max_urls_to_visit).init_search()
         print_results(emails)
         dump_to_csv(emails)

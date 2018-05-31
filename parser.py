@@ -80,10 +80,7 @@ class EmailParser:
     def is_valid_url(self, url):
         valid_url = {'valid': False, 'url': ''}
         is_not_an_email = urlparse(url).scheme != 'mailto'
-        # url_contains_root_domain = (
-        #     self.ROOT_DOMAIN in tldextract.extract(url).domain or
-        #     self.ROOT_DOMAIN in tldextract.extract(url).subdomain
-        # )
+        # url_contains_root_domain = self.url_contains_root_domain(url)
         url_contains_root_domain = True
 
         url_is_relative = self.is_a_relative_url(url)
@@ -93,6 +90,12 @@ class EmailParser:
             valid_url['url'] = urljoin(full + '/', url)
             valid_url['valid'] = True
         return valid_url
+
+    def url_contains_root_domain(url):
+      return (
+          self.ROOT_DOMAIN in tldextract.extract(url).domain or
+          self.ROOT_DOMAIN in tldextract.extract(url).subdomain
+      )
 
     # build full initial url from parsed pieces
     def get_full_initial_url(self):
@@ -119,10 +122,9 @@ class EmailParser:
             if url.scheme == 'mailto':
                 emails_found.update(self.parse_mailto(url.path))
         # Find in text
-        for textSnippet in html.get_text().split():
-            if validate_email(textSnippet) is True:
-                print 'here - ' + textSnippet
-                emails_found.update(textSnippet)
+        for textSnippet in html.get_text().split(' '):
+            if validate_email(textSnippet) is True and '.' in textSnippet and '@' in textSnippet:
+                emails_found.update(self.parse_mailto(textSnippet))
         return emails_found
 
     # parse the email addressses from a "mailto" url
@@ -131,7 +133,7 @@ class EmailParser:
         emails = email_string.split(',')
         for email in emails:
             i = email.find('?')
-            if not email.startswith('info') and not email.startswith('sales') and not email.startswith('hello') and not email.startswith('support') and not email.startswith('team') and not email.startswith('privacy') and not email.startswith('jobs') and not email.startswith('careers') and not email.startswith('security') and not email.startswith('legal'):
+            if not email.startswith('info') and not email.startswith('sales') and not email.startswith('hello') and not email.startswith('support') and not email.startswith('team') and not email.startswith('privacy') and not email.startswith('jobs') and not email.startswith('careers') and not email.startswith('security') and not email.startswith('legal') and not email.startswith('abuse') and not email.startswith('press') and not email.startswith('contact'):
                 email = email.replace('mailto:', '').strip()
                 if i == -1:
                     final_emails.add(email)
