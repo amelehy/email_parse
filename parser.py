@@ -3,6 +3,7 @@ import tldextract
 from bs4 import BeautifulSoup
 from urlparse import urlparse
 from urlparse import urljoin
+from validate_email import validate_email
 
 class EmailParser:
 
@@ -79,10 +80,12 @@ class EmailParser:
     def is_valid_url(self, url):
         valid_url = {'valid': False, 'url': ''}
         is_not_an_email = urlparse(url).scheme != 'mailto'
-        url_contains_root_domain = (
-            self.ROOT_DOMAIN in tldextract.extract(url).domain or
-            self.ROOT_DOMAIN in tldextract.extract(url).subdomain
-        )
+        # url_contains_root_domain = (
+        #     self.ROOT_DOMAIN in tldextract.extract(url).domain or
+        #     self.ROOT_DOMAIN in tldextract.extract(url).subdomain
+        # )
+        url_contains_root_domain = True
+
         url_is_relative = self.is_a_relative_url(url)
         is_not_a_pdf = not url.endswith('.pdf')
         if (url_contains_root_domain or url_is_relative) and is_not_an_email and is_not_a_pdf:
@@ -109,11 +112,17 @@ class EmailParser:
     # parse all emails given the html from a webpage
     def parse_emails(self, html):
         emails_found = set()
+        # Find in anchor tags
         for link in html.select('a'):
             href = link.get('href') or ''
             url = urlparse(href)
             if url.scheme == 'mailto':
                 emails_found.update(self.parse_mailto(url.path))
+        # Find in text
+        for textSnippet in html.get_text().split():
+            if validate_email(textSnippet) is True:
+                print 'here - ' + textSnippet
+                emails_found.update(textSnippet)
         return emails_found
 
     # parse the email addressses from a "mailto" url

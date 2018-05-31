@@ -10,10 +10,10 @@ def init():
     # being imported as a module
     if __name__ == "__main__":
         url = get_url_from_user()
-        max_urls_to_visit = 10000
+        max_urls_to_visit = 100
         emails = EmailParser(url, max_urls_to_visit).init_search()
-        dump_to_csv(emails)
         print_results(emails)
+        dump_to_csv(emails)
     else:
         raise Exception('This script will be inactive if imported as a module.')
 
