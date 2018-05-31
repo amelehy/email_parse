@@ -120,7 +120,7 @@ class EmailParser:
         emails = email_string.split(',')
         for email in emails:
             i = email.find('?')
-            if not email.startswith('info') and not email.startswith('sales') and not email.startswith('hello') and not email.startswith('support'):
+            if not email.startswith('info') and not email.startswith('sales') and not email.startswith('hello') and not email.startswith('support') and not email.startswith('team') and not email.startswith('privacy'):
                 if i == -1:
                     final_emails.add(email)
                 else:
