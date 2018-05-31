@@ -75,6 +75,7 @@ class EmailParser:
     # determine if the given url is valid
     # (1) url is not a "mailto" link
     # (2) the url contains the root domain as part of the domain or subdomain
+    # (3) the url does not point to a PDF
     def is_valid_url(self, url):
         valid_url = {'valid': False, 'url': ''}
         is_not_an_email = urlparse(url).scheme != 'mailto'
@@ -83,7 +84,8 @@ class EmailParser:
             self.ROOT_DOMAIN in tldextract.extract(url).subdomain
         )
         url_is_relative = self.is_a_relative_url(url)
-        if (url_contains_root_domain or url_is_relative) and is_not_an_email:
+        is_not_a_pdf = not url.endswith('.pdf')
+        if (url_contains_root_domain or url_is_relative) and is_not_an_email and is_not_a_pdf:
             full = self.get_full_initial_url()
             valid_url['url'] = urljoin(full + '/', url)
             valid_url['valid'] = True
@@ -120,7 +122,8 @@ class EmailParser:
         emails = email_string.split(',')
         for email in emails:
             i = email.find('?')
-            if not email.startswith('info') and not email.startswith('sales') and not email.startswith('hello') and not email.startswith('support') and not email.startswith('team') and not email.startswith('privacy'):
+            if not email.startswith('info') and not email.startswith('sales') and not email.startswith('hello') and not email.startswith('support') and not email.startswith('team') and not email.startswith('privacy') and not email.startswith('jobs') and not email.startswith('careers') and not email.startswith('security') and not email.startswith('legal'):
+                email = email.replace('mailto:', '').strip()
                 if i == -1:
                     final_emails.add(email)
                 else:
