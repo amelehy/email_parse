@@ -5,3 +5,9 @@
 beautifulsoup4
 requests
 tldextract
+sys
+csv
+time
+validate_email
+urlparse
+
