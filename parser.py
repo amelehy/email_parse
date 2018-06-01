@@ -8,6 +8,7 @@ from validate_email import validate_email
 class EmailParser:
 
     visited_urls = {}
+    urls_to_visit = list()
     found_email_addresses = set()
     ROOT_DOMAIN = ''
     ROOT_DOMAIN_SUBDOMAIN = ''
@@ -28,26 +29,39 @@ class EmailParser:
     # initialize the search for emails based on the
     # initial url passed
     def init_search(self):
-        self.init_link_discovery(self.INITIAL_URL)
-        return self.found_email_addresses
+        self.discover_links_and_save_emails(self.INITIAL_URL)
+        return {
+            "emails": self.found_email_addresses,
+            "urls_visited": len(self.visited_urls),
+            "urls_found_before_exiting": len(self.urls_to_visit)
+        }
 
-    # initialize link discovery to recursively determine
-    # what links we should visit from the current page
-    def init_link_discovery(self, url):
-        response = self.init_request(url)
-        if response['success']:
-            soup = BeautifulSoup(response['payload'].text, 'html.parser')
-            links_to_visit = self.fetch_all_links(soup)
-            for link in links_to_visit:
-                if link not in self.visited_urls and len(self.visited_urls) < self.MAX_URLS_TO_VISIT:
-                    print 'Visiting ' + link
-                    self.visited_urls[link] = 1
-                    emails = self.init_link_discovery(link)
-                    if emails:
-                        self.found_email_addresses.update(emails)
-            return self.parse_emails(soup)
-        else:
-            print 'Request to ' + url + ' failed because of: ' + str(response['payload'])
+    def discover_links_and_save_emails(self, url):
+        self.urls_to_visit.append(url)
+        count = 0
+        while len(self.visited_urls) < self.MAX_URLS_TO_VISIT and self.urls_to_visit[count]:
+            url = self.urls_to_visit[count]
+            if url not in self.visited_urls:
+                # Log visiting url
+                print 'Visiting ' + url
+                self.visited_urls[url] = 1
+                # Fetch URL content
+                response = self.init_request(url)
+                if response['success']:
+                    # Get HTML
+                    soup = BeautifulSoup(response['payload'].text, 'html.parser')
+                    # Find emails
+                    self.found_email_addresses.update(self.parse_emails(soup))
+                    # Get other links temp.
+                    links_to_visit = self.fetch_all_links(soup)
+                    for link in links_to_visit:
+                        if link not in self.visited_urls:
+                            self.urls_to_visit.append(link)
+                else:
+                    print 'Request to ' + url + ' failed because of: ' + str(response['payload'])
+            # Increment counter
+            count = count + 1
+        return
 
     # make a request to the given url and return the response
     def init_request(self, url):
@@ -65,12 +79,12 @@ class EmailParser:
 
     # fetch all relevant links in given page
     def fetch_all_links(self, html):
-        links = set()
+        links = list()
         for link in html.select('a'):
             url = link.get('href') or ''
             valid_url = self.is_valid_url(url)
             if valid_url['valid']:
-                links.add(valid_url['url'])
+                links.append(valid_url['url'])
         return links
 
     # determine if the given url is valid
@@ -133,7 +147,7 @@ class EmailParser:
         emails = email_string.split(',')
         for email in emails:
             i = email.find('?')
-            if not email.startswith('info') and not email.startswith('sales') and not email.startswith('hello') and not email.startswith('support') and not email.startswith('team') and not email.startswith('privacy') and not email.startswith('jobs') and not email.startswith('careers') and not email.startswith('security') and not email.startswith('legal') and not email.startswith('abuse') and not email.startswith('press') and not email.startswith('contact'):
+            if self.is_not_ignored_email(email):
                 email = email.replace('mailto:', '').strip()
                 if i == -1:
                     final_emails.add(email)
@@ -142,3 +156,28 @@ class EmailParser:
             else:
                 print 'Ignoring ' + email
         return final_emails
+
+    def is_not_ignored_email(self, email):
+        return (
+            not email.startswith('info') and
+            not email.startswith('sales') and
+            not email.startswith('hello') and
+            not email.startswith('support') and
+            not email.startswith('team') and
+            not email.startswith('privacy') and
+            not email.startswith('jobs') and
+            not email.startswith('careers') and
+            not email.startswith('security') and
+            not email.startswith('legal') and
+            not email.startswith('abuse') and
+            not email.startswith('press') and
+            not email.startswith('contact') and
+            not email.startswith('membership') and
+            not email.startswith('webmaster') and
+            not email.startswith('social') and
+            not email.startswith('billing') and
+            not email.startswith('seminars')
+        )
+
+
+

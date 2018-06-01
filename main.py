@@ -11,9 +11,19 @@ def init():
     if __name__ == "__main__":
         url = get_url_from_user()
         max_urls_to_visit = 20
-        emails = EmailParser(url, max_urls_to_visit).init_search()
-        print_results(emails)
-        dump_to_csv(emails)
+        results = EmailParser(url, max_urls_to_visit).init_search()
+        # Emails
+        print '\nFound these email addresses:'
+        print_results(results["emails"])
+        # Urls visited
+        print '\nUrls visited:'
+        print results["urls_visited"]
+        # Urls found before stopping
+        print '\nUrls found before stopping:'
+        print results["urls_found_before_exiting"]
+        print '\n'
+        # Dump emails to CSV
+        dump_to_csv(results["emails"])
     else:
         raise Exception('This script will be inactive if imported as a module.')
 
@@ -29,7 +39,6 @@ def get_url_from_user():
 
 # print out what we found
 def print_results(array):
-    print '\nFound these email addresses:'
     if len(array):
         for entry in array:
             print entry
