@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from urlparse import urlparse
 from urlparse import urljoin
 from validate_email import validate_email
+from time import gmtime, strftime
 
 class EmailParser:
 
@@ -29,11 +30,15 @@ class EmailParser:
     # initialize the search for emails based on the
     # initial url passed
     def init_search(self):
+        start_time = strftime("%Y-%m-%d %H:%M:%S", gmtime())
         self.discover_links_and_save_emails(self.INITIAL_URL)
+        end_time = strftime("%Y-%m-%d %H:%M:%S", gmtime())
         return {
             "emails": self.found_email_addresses,
             "urls_visited": len(self.visited_urls),
-            "urls_found_before_exiting": len(self.urls_to_visit)
+            "urls_found_before_exiting": len(self.urls_to_visit),
+            "start_time": start_time,
+            "end_time": end_time
         }
 
     def discover_links_and_save_emails(self, url):
