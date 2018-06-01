@@ -48,7 +48,7 @@ class EmailParser:
             url = self.urls_to_visit[count]
             if url not in self.visited_urls:
                 # Log visiting url
-                print 'Visiting ' + url
+                print '(' + str(len(self.visited_urls)) + ' / ' + str(self.MAX_URLS_TO_VISIT) + ')' + ' Visiting ' + url
                 self.visited_urls[url] = 1
                 # Fetch URL content
                 response = self.init_request(url)
@@ -138,7 +138,7 @@ class EmailParser:
         for link in html.select('a'):
             href = link.get('href') or ''
             url = urlparse(href)
-            if url.scheme == 'mailto':
+            if url.scheme == 'mailto' and '.' in url.path and '@' in url.path:
                 emails_found.update(self.parse_mailto(url.path))
         # Find in text
         for textSnippet in html.get_text().split(' '):
@@ -181,7 +181,34 @@ class EmailParser:
             not email.startswith('webmaster') and
             not email.startswith('social') and
             not email.startswith('billing') and
-            not email.startswith('seminars')
+            not email.startswith('seminars') and
+            not email.startswith('events') and
+            not email.startswith('tips') and
+            not email.startswith('letters') and
+            not email.startswith('accessibility') and
+            not email.startswith('research') and
+            not email.startswith('help') and
+            not email.startswith('website') and
+            not email.startswith('investors') and
+            not email.startswith('subscription') and
+            not email.startswith('tour') and
+            not email.startswith('dev') and
+            not email.startswith('copywright') and
+            not email.startswith('web') and
+            not email.startswith('production') and
+            not email.startswith('feedback') and
+            not email.startswith('media') and
+            not email.startswith('corrections') and
+            not email.startswith('letters') and
+            not email.startswith('staff') and
+            'request' not in email and
+            'email' not in email and
+            'invoice' not in email and
+            'inquiry' not in email and
+            'connect' not in email and
+            '@media' not in email and
+            'privacy' not in email and
+            'help' not in email
         )
 
 

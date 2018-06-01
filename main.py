@@ -10,12 +10,8 @@ def init():
     # being imported as a module
     if __name__ == "__main__":
         url = get_url_from_user()
-        max_urls_to_visit = 20
+        max_urls_to_visit = 20000
         results = EmailParser(url, max_urls_to_visit).init_search()
-        # Time
-        print '\nScript timing:'
-        print 'Start - ' + results["start_time"]
-        print 'End - ' + results["end_time"]
         # Emails
         print '\nFound these email addresses:'
         print_results(results["emails"])
@@ -26,6 +22,10 @@ def init():
         print '\nUrls found before stopping:'
         print results["urls_found_before_exiting"]
         print '\n'
+        # Time
+        print '\nScript timing:'
+        print 'Start - ' + results["start_time"]
+        print 'End - ' + results["end_time"]
         # Dump emails to CSV
         dump_to_csv(results["emails"])
     else:
