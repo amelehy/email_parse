@@ -153,7 +153,7 @@ class EmailParser:
         for email in emails:
             i = email.find('?')
             if self.is_not_ignored_email(email):
-                email = email.replace('mailto:', '').strip()
+                email = email.replace('mailto:', '').strip().lower().replace('{', '').replace('}', '').replace('(', '').replace(')', '')
                 if i == -1:
                     final_emails.add(email)
                 else:
@@ -164,7 +164,6 @@ class EmailParser:
 
     def is_not_ignored_email(self, email):
         return (
-            not email.startswith('info') and
             not email.startswith('sales') and
             not email.startswith('hello') and
             not email.startswith('support') and
@@ -177,7 +176,6 @@ class EmailParser:
             not email.startswith('abuse') and
             not email.startswith('press') and
             not email.startswith('contact') and
-            not email.startswith('membership') and
             not email.startswith('webmaster') and
             not email.startswith('social') and
             not email.startswith('billing') and
@@ -187,7 +185,6 @@ class EmailParser:
             not email.startswith('letters') and
             not email.startswith('accessibility') and
             not email.startswith('research') and
-            not email.startswith('help') and
             not email.startswith('website') and
             not email.startswith('investors') and
             not email.startswith('subscription') and
@@ -197,10 +194,11 @@ class EmailParser:
             not email.startswith('web') and
             not email.startswith('production') and
             not email.startswith('feedback') and
-            not email.startswith('media') and
             not email.startswith('corrections') and
             not email.startswith('letters') and
             not email.startswith('staff') and
+            not email endswith('.gov') and
+            'regist' not in email and
             'request' not in email and
             'email' not in email and
             'invoice' not in email and
@@ -208,7 +206,55 @@ class EmailParser:
             'connect' not in email and
             '@media' not in email and
             'privacy' not in email and
-            'help' not in email
+            'help' not in email and
+            'feedback' not in email and
+            'admission' not in email and
+            'coordinator' not in email and
+            'consumer' not in email and
+            'question' not in email and
+            'customer' not in email and
+            'media' not in email and
+            'trademark' not in email and
+            '@' in email and
+            '.' in email and
+            ' ' not in email and
+            'reviews' not in email and
+            'twitter' not in email and
+            'help' not in email and
+            'spam' not in email and
+            'admin' not in email and
+            'financ' not in email and
+            'editor' not in email and
+            'webkit' not in email and
+            'test' not in email and
+            'sales' not in email and
+            'court' not in email and
+            'service' not in email and
+            'enforce' not in email and
+            'student' not in email and
+            'public' not in email and
+            'reference' not in email and
+            'director' not in email and
+            'resource' not in email and
+            'graduat' not in email and
+            'info' not in email and
+            'academic' not in email and
+            'news' not in email and
+            'educat' not in email and
+            'counsel' not in email and
+            'council' not in email and
+            'dean' not in email and
+            'android' not in email and
+            'member' not in email and
+            'conference' not in email and
+            'partner' not in email and
+            'comment' not in email and
+            'donate' not in email and
+            'section' not in email and
+            'sport' not in email and
+            'fraud' not in email and
+            'history' not in email and
+            'client' not in email
         )
 
 
