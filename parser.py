@@ -197,7 +197,7 @@ class EmailParser:
             not email.startswith('corrections') and
             not email.startswith('letters') and
             not email.startswith('staff') and
-            not email endswith('.gov') and
+            not email.endswith('.gov') and
             'regist' not in email and
             'request' not in email and
             'email' not in email and
