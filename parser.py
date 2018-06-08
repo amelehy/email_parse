@@ -44,7 +44,7 @@ class EmailParser:
     def discover_links_and_save_emails(self, url):
         self.urls_to_visit.append(url)
         count = 0
-        while len(self.visited_urls) < self.MAX_URLS_TO_VISIT and self.urls_to_visit[count]:
+        while len(self.visited_urls) < self.MAX_URLS_TO_VISIT and count < len(self.urls_to_visit):
             url = self.urls_to_visit[count]
             if url not in self.visited_urls:
                 # Log visiting url
@@ -103,8 +103,8 @@ class EmailParser:
         url_contains_root_domain = True
 
         url_is_relative = self.is_a_relative_url(url)
-        is_not_a_pdf = not url.endswith('.pdf')
-        if (url_contains_root_domain or url_is_relative) and is_not_an_email and is_not_a_pdf:
+        ignore_url = self.should_ignore_url(url)
+        if (url_contains_root_domain or url_is_relative) and is_not_an_email and not ignore_url:
             full = self.get_full_initial_url()
             valid_url['url'] = urljoin(full + '/', url)
             valid_url['valid'] = True
@@ -161,6 +161,34 @@ class EmailParser:
             else:
                 print 'Ignoring ' + email
         return final_emails
+
+    def should_ignore_url(url):
+        return (
+          '.pdf' in url or
+          '.ashx' in url or
+          '.avi' in url or
+          '.css' in url or
+          '.doc' in url or
+          '.docx' in url or
+          '.exe' in url or
+          '.gif' in url or
+          '.jpg' in url or
+          '.jpeg' in url or
+          '.mid' in url or
+          '.midi' in url or
+          '.mp3' in url or
+          '.mpg' in url or
+          '.mpeg' in url or
+          '.mov' in url or
+          '.qt' in url or
+          '.pdf' in url or
+          '.png' in url or
+          '.ram' in url or
+          '.rar' in url or
+          '.tiff' in url or
+          '.wav' in url or
+          '.zip' in url
+        )
 
     def is_not_ignored_email(self, email):
         return (
