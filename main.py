@@ -27,7 +27,7 @@ def init():
         print 'Start - ' + results["start_time"]
         print 'End - ' + results["end_time"]
         # Dump emails to CSV
-        dump_to_csv(url, results["emails"])
+        dump_to_csv(url, max_urls_to_visit, results["emails"])
     else:
         raise Exception('This script will be inactive if imported as a module.')
 
@@ -58,8 +58,8 @@ def print_results(array):
     else:
         print 'None found'
 
-def dump_to_csv(url, emails):
-    writer = csv.writer(open(url + "-emails.csv", 'w'))
+def dump_to_csv(url, max_urls_to_visit, emails):
+    writer = csv.writer(open('./emails/' + url + '-' + str(max_urls_to_visit) + "-emails.csv", 'w'))
     writer.writerow(list(emails))
 
 init()
