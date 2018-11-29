@@ -99,8 +99,8 @@ class EmailParser:
     def is_valid_url(self, url):
         valid_url = {'valid': False, 'url': ''}
         is_not_an_email = urlparse(url).scheme != 'mailto'
-        # url_contains_root_domain = self.url_contains_root_domain(url)
-        url_contains_root_domain = True
+        url_contains_root_domain = self.ROOT_DOMAIN in tldextract.extract(url).domain or self.ROOT_DOMAIN in tldextract.extract(url).subdomain
+        # url_contains_root_domain = True
 
         url_is_relative = self.is_a_relative_url(url)
         ignore_url = self.should_ignore_url(url)
@@ -109,12 +109,6 @@ class EmailParser:
             valid_url['url'] = urljoin(full + '/', url)
             valid_url['valid'] = True
         return valid_url
-
-    def url_contains_root_domain(url):
-      return (
-          self.ROOT_DOMAIN in tldextract.extract(url).domain or
-          self.ROOT_DOMAIN in tldextract.extract(url).subdomain
-      )
 
     # build full initial url from parsed pieces
     def get_full_initial_url(self):
@@ -162,7 +156,7 @@ class EmailParser:
                 print 'Ignoring ' + email
         return final_emails
 
-    def should_ignore_url(url):
+    def should_ignore_url(self, url):
         return (
           '.pdf' in url or
           '.ashx' in url or
@@ -192,40 +186,41 @@ class EmailParser:
 
     def is_not_ignored_email(self, email):
         return (
-            not email.startswith('sales') and
-            not email.startswith('hello') and
-            not email.startswith('support') and
-            not email.startswith('team') and
-            not email.startswith('privacy') and
-            not email.startswith('jobs') and
-            not email.startswith('careers') and
-            not email.startswith('security') and
-            not email.startswith('legal') and
-            not email.startswith('abuse') and
-            not email.startswith('press') and
-            not email.startswith('contact') and
-            not email.startswith('webmaster') and
-            not email.startswith('social') and
-            not email.startswith('billing') and
-            not email.startswith('seminars') and
-            not email.startswith('events') and
-            not email.startswith('tips') and
-            not email.startswith('letters') and
-            not email.startswith('accessibility') and
-            not email.startswith('research') and
-            not email.startswith('website') and
-            not email.startswith('investors') and
-            not email.startswith('subscription') and
-            not email.startswith('tour') and
-            not email.startswith('dev') and
-            not email.startswith('copywright') and
-            not email.startswith('web') and
-            not email.startswith('production') and
-            not email.startswith('feedback') and
-            not email.startswith('corrections') and
-            not email.startswith('letters') and
-            not email.startswith('staff') and
-            not email.endswith('.gov') and
+            'sales' not in email and
+            'hello' not in email and
+            'support' not in email and
+            'team' not in email and
+            'privacy' not in email and
+            'jobs' not in email and
+            'careers' not in email and
+            'security' not in email and
+            'legal' not in email and
+            'abuse' not in email and
+            'press' not in email and
+            'contact' not in email and
+            'webmaster' not in email and
+            'social' not in email and
+            'billing' not in email and
+            'seminars' not in email and
+            'events' not in email and
+            'tips' not in email and
+            'letters' not in email and
+            'accessibility' not in email and
+            'research' not in email and
+            'website' not in email and
+            'investors' not in email and
+            'subscription' not in email and
+            'tour' not in email and
+            'dev' not in email and
+            'copywright' not in email and
+            'copyright' not in email and
+            'web' not in email and
+            'production' not in email and
+            'feedback' not in email and
+            'corrections' not in email and
+            'letters' not in email and
+            'staff' not in email and
+            '.gov' not in email and
             'regist' not in email and
             'request' not in email and
             'email' not in email and
@@ -282,7 +277,37 @@ class EmailParser:
             'sport' not in email and
             'fraud' not in email and
             'history' not in email and
-            'client' not in email
+            'client' not in email and
+            'hotel' not in email and
+            'example' not in email and
+            'communicat' not in email and
+            'relations' not in email and
+            'compliance' not in email and
+            'optout' not in email and
+            'mobile' not in email and
+            'manage' not in email and
+            'tickets' not in email and
+            'advertising' not in email and
+            'meeting' not in email and
+            'sponsor' not in email and
+            'account' not in email and
+            'subscribe' not in email and
+            'recruit' not in email and
+            'reward' not in email and
+            'trust' not in email and
+            'retire' not in email and
+            'certification' not in email and
+            'train' not in email and
+            'market' not in email and
+            'volunteer' not in email and
+            'gift' not in email and
+            'design' not in email and
+            'consent' not in email and
+            'enquiries' not in email and
+            'radio' not in email and
+            'video' not in email and
+            'data' not in email and
+            'care' not in email
         )
 
 

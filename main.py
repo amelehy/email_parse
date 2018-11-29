@@ -2,6 +2,7 @@
 
 import sys
 import csv
+import tldextract
 from parser import EmailParser
 
 # initialize script
@@ -26,7 +27,7 @@ def init():
         print 'Start - ' + results["start_time"]
         print 'End - ' + results["end_time"]
         # Dump emails to CSV
-        dump_to_csv(results["emails"])
+        dump_to_csv(url, results["emails"])
     else:
         raise Exception('This script will be inactive if imported as a module.')
 
@@ -57,8 +58,8 @@ def print_results(array):
     else:
         print 'None found'
 
-def dump_to_csv(emails):
-    writer = csv.writer(open("emails.csv", 'w'))
+def dump_to_csv(url, emails):
+    writer = csv.writer(open(url + "-emails.csv", 'w'))
     writer.writerow(list(emails))
 
 init()
