@@ -59,7 +59,7 @@ def print_results(array):
         print 'None found'
 
 def dump_to_csv(url, max_urls_to_visit, emails):
-    writer = csv.writer(open('./emails/' + url + '-' + str(max_urls_to_visit) + "-emails.csv", 'w'))
-    writer.writerow(list(emails))
+    writer = csv.writer(open("emails.csv", 'a'))
+    writer.writerow([url, str(max_urls_to_visit), list(emails)])
 
 init()

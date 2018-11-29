@@ -99,8 +99,8 @@ class EmailParser:
     def is_valid_url(self, url):
         valid_url = {'valid': False, 'url': ''}
         is_not_an_email = urlparse(url).scheme != 'mailto'
-        url_contains_root_domain = self.ROOT_DOMAIN in tldextract.extract(url).domain or self.ROOT_DOMAIN in tldextract.extract(url).subdomain
-        # url_contains_root_domain = True
+        # url_contains_root_domain = self.ROOT_DOMAIN in tldextract.extract(url).domain or self.ROOT_DOMAIN in tldextract.extract(url).subdomain
+        url_contains_root_domain = True
 
         url_is_relative = self.is_a_relative_url(url)
         ignore_url = self.should_ignore_url(url)
